@@ -20,7 +20,7 @@ oauth_client.register(
 )
 
 login_manager = LoginManager()
-login_manager.login_view = "auth.login"
+login_manager.login_view = "auth.index"
 
 migrate = Migrate()
 
