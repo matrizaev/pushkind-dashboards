@@ -1,0 +1,44 @@
+{% extends "base.html" %}
+
+{% block meta %}
+{% endblock %}
+
+{% block content %}
+<div class="container">
+    <div class="row justify-content-center">
+        <div class="col-md-4">
+            <div class="card">
+                <div class="card-header text-muted fw-bold text-center">
+                    Авторизация
+                </div>
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col text-center">
+                            <a class="btn btn-outline-dark" role="button"
+                                href="{{ url_for('auth.login', authenticator='yandex') }}">
+                                <i class="bi bi-arrow-right-square"></i>
+                                Yandex
+                            </a>
+                        </div>
+                        <div class="col text-center">
+                            <a class="btn btn-outline-dark" role="button"
+                                href="{{ url_for('auth.login', authenticator='google') }}">
+                                <i class="bi bi-arrow-right-square"></i>
+                                Google
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+    document.addEventListener("DOMContentLoaded", () => {
+        sessionStorage.clear();
+    });
+</script>
+{% endblock %}

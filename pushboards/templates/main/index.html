@@ -1,0 +1,139 @@
+{% extends "base.html" %}
+
+{% block meta %}
+{% endblock %}
+
+{% block content %}
+<div class="container">
+    <div class="row">
+        <div class="col">
+            <form action="{{url_for('main.upload')}}" class="dropzone dz-clickable border rounded bg-light p-3">
+                <div class="dz-default dz-message text-center">
+                    <i class="bi bi-cloud-arrow-up" style="font-size: 2rem;"></i>
+                    <div>Перетащить файл или кликнуть чтобы загрузить.</div>
+                </div>
+            </form>
+        </div>
+    </div>
+    <div id="existing-files-list">
+        {% for rows in current_user.files|batch(5) %}
+        <div class="row my-4">
+            {% for file_data in rows %}
+            <div class="col-sm m-1">
+                <div class="card text-center">
+                    <div class="card-body">
+                        <a href="{{file_data.file_url}}">
+                            <img class="logo" src="{{url_for('static', filename='images/excel.png')}}" alt="thumbnail">
+                        </a>
+                    </div>
+                    <div class="card-footer bg-white border-top-0">
+                        <div class="row">
+                            <div class="col">
+                                <a class="card-link d-inline-block text-truncate" style="max-width: 150px;"
+                                    data-bs-toggle="tooltip" data-bs-placement="top" title="{{file_data.file_name}}"
+                                    href="{{file_data.file_url}}">{{file_data.file_name}}</a>
+                            </div>
+                        </div>
+                        <div class="row">
+                            <div class="col">
+                                <form action="{{ url_for('main.remove', file_id=file_data.id) }}" method="POST">
+                                    <button class="btn btn-link" onclick="return confirm('Удалить?')">Удалить</button>
+                                </form>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            {% endfor %}
+            {% for i in range(5 - rows|length) %}
+            <div class="col-sm m-1">
+            </div>
+            {% endfor %}
+        </div>
+        {% endfor %}
+    </div>
+</div>
+{% endblock %}
+
+
+{% block templates%}
+
+<div id="dz-file-preview-template">
+    <div class="dz-preview dz-file-preview">
+        <div class="dz-image"><a data-dz-file-url><img data-dz-thumbnail></a></div>
+        <div class="dz-details">
+            <div class="dz-size">
+                <a data-dz-file-url>
+                    <span data-dz-size></span>
+                </a>
+            </div>
+            <div class="dz-filename">
+                <a data-dz-file-url>
+                    <span data-dz-name></span>
+                </a>
+            </div>
+        </div>
+        <div class="dz-progress">
+            <span class="dz-upload" data-dz-uploadprogress></span>
+        </div>
+        <div class="dz-error-message"><span data-dz-errormessage></span></div>
+        <div class="dz-success-mark">
+            <svg width="54" height="54" viewBox="0 0 54 54" fill="white" xmlns="http://www.w3.org/2000/svg">
+                <path
+                    d="M10.2071 29.7929L14.2929 25.7071C14.6834 25.3166 15.3166 25.3166 15.7071 25.7071L21.2929 31.2929C21.6834 31.6834 22.3166 31.6834 22.7071 31.2929L38.2929 15.7071C38.6834 15.3166 39.3166 15.3166 39.7071 15.7071L43.7929 19.7929C44.1834 20.1834 44.1834 20.8166 43.7929 21.2071L22.7071 42.2929C22.3166 42.6834 21.6834 42.6834 21.2929 42.2929L10.2071 31.2071C9.81658 30.8166 9.81658 30.1834 10.2071 29.7929Z" />
+            </svg>
+        </div>
+        <div class="dz-error-mark">
+            <svg width="54" height="54" viewBox="0 0 54 54" fill="white" xmlns="http://www.w3.org/2000/svg">
+                <path
+                    d="M26.2929 20.2929L19.2071 13.2071C18.8166 12.8166 18.1834 12.8166 17.7929 13.2071L13.2071 17.7929C12.8166 18.1834 12.8166 18.8166 13.2071 19.2071L20.2929 26.2929C20.6834 26.6834 20.6834 27.3166 20.2929 27.7071L13.2071 34.7929C12.8166 35.1834 12.8166 35.8166 13.2071 36.2071L17.7929 40.7929C18.1834 41.1834 18.8166 41.1834 19.2071 40.7929L26.2929 33.7071C26.6834 33.3166 27.3166 33.3166 27.7071 33.7071L34.7929 40.7929C35.1834 41.1834 35.8166 41.1834 36.2071 40.7929L40.7929 36.2071C41.1834 35.8166 41.1834 35.1834 40.7929 34.7929L33.7071 27.7071C33.3166 27.3166 33.3166 26.6834 33.7071 26.2929L40.7929 19.2071C41.1834 18.8166 41.1834 18.1834 40.7929 17.7929L36.2071 13.2071C35.8166 12.8166 35.1834 12.8166 34.7929 13.2071L27.7071 20.2929C27.3166 20.6834 26.6834 20.6834 26.2929 20.2929Z" />
+            </svg>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+
+{% block scripts %}
+<script>
+    Dropzone.autoDiscover = false;
+
+    // Dropzone configuration
+    var myDropzone = new Dropzone(".dropzone", {
+        url: "{{url_for('main.upload')}}",
+        paramName: "file",
+        maxFilesize: 10, // MB
+        maxFiles: 10,
+        acceptedFiles: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+        dictDefaultMessage: "Перетащить файл или кликнуть чтобы загрузить.",
+        clickable: true,
+        previewTemplate: document.querySelector('#dz-file-preview-template').innerHTML,
+        addRemoveLinks: true,
+        dictRemoveFile: "Удалить",
+        dictRemoveFileConfirmation: "Удалить?"
+    });
+
+    myDropzone.on("success", function (file, serverResponse) {
+        file.file_id = serverResponse.id;
+        for (let thumbnailElement of file.previewElement.querySelectorAll(
+            "[data-dz-thumbnail]"
+        )) {
+            thumbnailElement.alt = file.name;
+            thumbnailElement.src = "{{url_for('static', filename='images/excel.png')}}";
+            thumbnailElement.classList.add("logo");
+        }
+        for (let fileUrlElement of file.previewElement.querySelectorAll(
+            "[data-dz-file-url]"
+        )) {
+            fileUrlElement.href = serverResponse.file_url;
+        }
+    });
+
+    myDropzone.on("removedfile", function (file) {
+        fetch("{{ url_for('main.remove', file_id=-1) }}".replace("-1", file.file_id), {
+            method: "POST"
+        });
+    });
+
+</script>
+{% endblock %}
