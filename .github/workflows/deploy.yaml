@@ -1,8 +1,11 @@
 name: Deploy main
 
 on:
-  push:
+  workflow_run:
+    workflows: ["Flake8"]
     branches: [ main ]
+    types:
+      - completed
 
 jobs:
   build:
