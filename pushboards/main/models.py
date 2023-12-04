@@ -1,8 +1,8 @@
-from pushboards import db
 from pushboards.auth.models import User
+from pushboards.extensions import db
 
 
-class UserFile(db.Model):  # noqa: R0401
+class UserFile(db.Model):  # noqa: R0401, R0903
     __tablename__ = "files"
 
     id = db.Column(db.Integer, primary_key=True, autoincrement=True)
@@ -18,3 +18,15 @@ class UserFile(db.Model):  # noqa: R0401
         self.file_url = file_url
         self.file_path = file_path
         self.user = user
+
+    def to_json(self):
+        return {
+            "id": self.id,
+            "file_name": self.file_name,
+            "file_url": self.file_url,
+            "file_path": self.file_path,
+            "user_id": self.user_id,
+        }
+
+    def process(self):
+        pass

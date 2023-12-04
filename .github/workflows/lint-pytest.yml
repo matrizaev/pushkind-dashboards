@@ -1,4 +1,4 @@
-name: Flake8 and Pytest
+name: Lint and Pytest
 
 on:
   push:
@@ -27,6 +27,9 @@ jobs:
     - name: Lint with flake8
       run: |
         poetry run flake8 $(git ls-files '*.py')
+    - name: Lint with pylint
+      run: |
+        poetry run pylint $(git ls-files '*.py')
     - name: Test with pytest
       run: |
         poetry run pytest

@@ -1,18 +1,15 @@
 from flask import Blueprint, abort, current_app, redirect, render_template, url_for
 from flask_login import current_user, login_user, logout_user
 
-from pushboards import db, login_manager
 from pushboards.auth.models import User
+from pushboards.extensions import db, login_manager
 
 bp = Blueprint("auth", __name__)
 
 
 @login_manager.user_loader
 def load_user(user_id):
-    try:
-        return User.query.get(user_id)
-    except Exception:  # noqa: W0718
-        return None
+    return User.query.get(user_id)
 
 
 @bp.route("/")

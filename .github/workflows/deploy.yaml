@@ -10,6 +10,7 @@ on:
 jobs:
   build:
     runs-on: ubuntu-latest
+    if: ${{ github.event.workflow_run.conclusion == 'success' }}
     steps:
       - name: Install SSH Key
         uses: shimataro/ssh-key-action@v2
@@ -20,3 +21,8 @@ jobs:
           if_key_exists: fail # replace / ignore / fail; optional (defaults to fail)
       - name: Pull
         run: ssh cicd@reports.pushkind.com "cd /var/www6/html/ && git pull origin main && supervisorctl restart reports_dev"
+  on-failure:
+      runs-on: ubuntu-latest
+      if: ${{ github.event.workflow_run.conclusion == 'failure' }}
+      steps:
+        - run: echo 'The triggering workflow failed'

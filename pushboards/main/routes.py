@@ -4,7 +4,7 @@ from uuid import uuid4
 from flask import Blueprint, abort, current_app, flash, jsonify, redirect, render_template, request, url_for
 from flask_login import current_user, login_required
 
-from pushboards import db
+from pushboards.extensions import db
 from pushboards.main.models import UserFile
 from pushboards.main.process import process
 
