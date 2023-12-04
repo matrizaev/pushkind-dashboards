@@ -11,7 +11,7 @@ bp = Blueprint("auth", __name__)
 def load_user(user_id):
     try:
         return User.query.get(user_id)
-    except Exception:
+    except Exception:  # noqa: W0718
         return None
 
 
