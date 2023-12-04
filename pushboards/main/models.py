@@ -2,7 +2,7 @@ from pushboards import db
 from pushboards.auth.models import User
 
 
-class UserFile(db.Model):
+class UserFile(db.Model):  # noqa: R0401
     __tablename__ = "files"
 
     id = db.Column(db.Integer, primary_key=True, autoincrement=True)

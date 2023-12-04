@@ -50,5 +50,5 @@ def remove(file_id):
         abort(404)
     if not wants_json_response():
         return redirect(url_for("main.index"))
-    else:
-        return jsonify({"status": "ok"})
+
+    return jsonify({"status": "ok"})

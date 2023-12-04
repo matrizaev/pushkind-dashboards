@@ -47,7 +47,7 @@ def update_output_sheet(output_sheet, template_cells, header_row=3):
     start_row = output_sheet.max_row + 1
     start_col = 1
 
-    for idx, entity in enumerate(template_cells):
+    for entity in template_cells:
         for key, value in entity.items():
             try:
                 col_idx = header.index(key) + 1
@@ -57,16 +57,16 @@ def update_output_sheet(output_sheet, template_cells, header_row=3):
                 cell = output_sheet.cell(start_row, col_idx)
                 cell.value = value
                 continue
-            else:
-                for subkey, subvalues in value.items():
-                    cell = output_sheet.cell(start_row, col_idx)
-                    cell.value = subkey
-                    start_col = col_idx + 1
-                    for subvalue in subvalues:
-                        cell = output_sheet.cell(start_row, start_col)
-                        cell.value = subvalue
-                        start_col += 1
-                    start_row += 1
+
+            for subkey, subvalues in value.items():
+                cell = output_sheet.cell(start_row, col_idx)
+                cell.value = subkey
+                start_col = col_idx + 1
+                for subvalue in subvalues:
+                    cell = output_sheet.cell(start_row, start_col)
+                    cell.value = subvalue
+                    start_col += 1
+                start_row += 1
         start_row += 1
 
 

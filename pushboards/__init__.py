@@ -54,5 +54,5 @@ def create_app():
     return app
 
 
-from pushboards.auth import models  # noqa: E402,F401
-from pushboards.main import models  # noqa: E402,F401
+from pushboards.auth import models as auth_models  # noqa: E402,F401
+from pushboards.main import models as main_models  # noqa: E402,F401
