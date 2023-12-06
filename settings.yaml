@@ -9,3 +9,4 @@ development:
 
 testing:
   title: "testing"
+  login_disabled: true
