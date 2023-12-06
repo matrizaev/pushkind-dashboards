@@ -36,9 +36,7 @@
                         </div>
                         <div class="row">
                             <div class="col">
-                                <form action="{{ url_for('main.remove', file_id=file_data.id) }}" method="POST">
-                                    <button class="btn btn-link" onclick="return confirm('Удалить?')">Удалить</button>
-                                </form>
+                                <button class="btn btn-link remove-file" data-id="{{file_data.id}}">Удалить</button>
                             </div>
                         </div>
                     </div>
@@ -103,7 +101,6 @@
         url: "{{url_for('main.upload')}}",
         paramName: "file",
         maxFilesize: 10, // MB
-        maxFiles: 10,
         acceptedFiles: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
         dictDefaultMessage: "Перетащить файл или кликнуть чтобы загрузить.",
         clickable: true,
@@ -132,6 +129,34 @@
     myDropzone.on("removedfile", function (file) {
         fetch("{{ url_for('main.remove', file_id=-1) }}".replace("-1", file.file_id), {
             method: "POST"
+        });
+    });
+
+
+    const removeFileLinks = document.querySelectorAll(".remove-file");
+
+    removeFileLinks.forEach(function (removeFileLink) {
+        removeFileLink.addEventListener("click", function (event) {
+            if (!confirm("Удалить?"))
+                return;
+            const fileId = removeFileLink.dataset.id;
+            const url = "{{ url_for('main.remove', file_id=-1) }}".replace("-1", fileId);
+            fetch(url, { "method": "POST" })
+                .then(response => {
+                    return response.json();
+                })
+                .then(jsonData => {
+                    if (jsonData.status == "ok") {
+                        showBootstrapAlert("Файл успешно удален.", "success");
+                        const parentCardElement = removeFileLink.closest(".card");
+                        parentCardElement.remove();
+                    }
+                    else
+                        throw Error("Wrong operation status");
+                })
+                .catch(err => {
+                    showBootstrapAlert("Не удалось удалить файл.", "danger");
+                });
         });
     });
 

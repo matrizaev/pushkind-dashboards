@@ -58,7 +58,12 @@
 
     {% block content %}{% endblock %}
 
-    <div class="d-none">
+    <div class="d-none" id="templates">
+        <div class="alert alert-dismissible" role="alert">
+            <span>
+            </span>
+            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+        </div>
         {% block templates %}{% endblock %}
     </div>
 
@@ -75,6 +80,17 @@
                 return new bootstrap.Tooltip(tooltipTriggerEl)
             });
         });
+
+        function showBootstrapAlert(message, category) {
+            const flaskFlashMesages = document.querySelector("#flask-flash-messages");
+            const alertTemplate = document.querySelector("#templates div.alert").cloneNode(true);
+            alertTemplate.classList.add("alert-" + category);
+            const alertMessage = alertTemplate.querySelector("span");
+            alertMessage.innerHTML = message;
+            flaskFlashMesages.appendChild(alertTemplate);
+            flaskFlashMesages.scrollIntoView();
+        }
+
     </script>
     {% block scripts %}{% endblock %}
 </body>
