@@ -1,8 +1,11 @@
 default:
   title: "Pushkind Dashboards"
   oauth2_scopes: "openid email profile"
+  static_upload_path: upload
+  sqlalchemy_database_uri: sqlite:///app.db
 
 development:
-  sqlalchemy_database_uri: sqlite:///app.db
   debug: true
-  static_upload_path: upload
+
+testing:
+  title: "testing"

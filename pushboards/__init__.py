@@ -1,16 +1,18 @@
 import logging
 import sys
 
+from dynaconf import FlaskDynaconf
 from flask import Flask, render_template
 
 from pushboards import admin, auth, main
-from pushboards.extensions import bootstrap, config, db, login_manager, migrate, oauth_client
+from pushboards.extensions import bootstrap, db, login_manager, migrate, oauth_client
 from pushboards.oauth2.google import GoogleOauth2Config
 from pushboards.oauth2.yandex import YandexOauth2Config
 
 
-def create_app():
+def create_app(**config):
     app = Flask(__name__)
+    FlaskDynaconf(app, **config)
     register_extensions(app)
     register_blueprints(app)
     register_errorhandlers(app)
@@ -21,7 +23,6 @@ def create_app():
 
 
 def register_extensions(app):
-    config.init_app(app)
     oauth_client.register(
         name=GoogleOauth2Config.NAME,
         client_cls=GoogleOauth2Config,
@@ -32,6 +33,7 @@ def register_extensions(app):
     )
     oauth_client.init_app(app)
     login_manager.login_view = "auth.index"
+    login_manager.login_message = "Пожалуйста, авторизуйтесь, чтобы увидеть эту страницу."
     login_manager.init_app(app)
     db.init_app(app)
     migrate.init_app(app, db)
