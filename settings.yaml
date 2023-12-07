@@ -4,6 +4,7 @@ default:
   static_upload_path: upload
   sqlalchemy_database_uri: sqlite:///app.db
   file_upload_suffix: ".xlsx"
+  admins: []
 
 development:
   debug: true
