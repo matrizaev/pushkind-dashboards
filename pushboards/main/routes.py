@@ -1,6 +1,7 @@
 from pathlib import Path
+from uuid import uuid4
 
-from flask import Blueprint, abort, jsonify, render_template, request
+from flask import Blueprint, abort, current_app, jsonify, render_template, request, url_for
 from flask_login import current_user, login_required
 
 from pushboards.extensions import db
@@ -20,13 +21,20 @@ def index():
 @bp.route("/upload", methods=["POST"])
 @login_required
 def upload():
-    file_post = request.files["file"]
-    user_file = UserFile(file_post=file_post, user_id=current_user.id, process_fn=process)
+    file_post = request.files.get("file")
+    if not file_post:
+        abort(400)
+
+    file_path: Path = (
+        Path(current_app.static_folder) / current_app.config.get("static_upload_path") / uuid4().hex
+    ).with_suffix(current_app.config["file_upload_suffix"])
+    file_post.stream = process(file_post.stream)
+    file_post.save(file_path)
+    file_url = url_for("static", filename=file_path.relative_to(current_app.static_folder))
+    user_file = UserFile(file_post.filename, str(file_path), file_url, current_user.id)
     db.session.add(user_file)
     db.session.commit()
-    return jsonify(
-        {"status": "ok", "file_url": user_file.file_url, "file_name": user_file.file_name, "id": user_file.id}
-    )
+    return jsonify({"status": "ok", "file_url": file_url, "file_name": user_file.file_name, "id": user_file.id})
 
 
 @bp.route("/remove/<int:file_id>", methods=["POST"])

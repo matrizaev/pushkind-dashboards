@@ -1,7 +1,9 @@
 from io import BytesIO
-from typing import Any
+from typing import Any, Callable
 
 from openpyxl import load_workbook
+
+ProcessCallable = Callable[[bytes], bytes]
 
 
 def update_value_list_dict(data: dict, key: Any, value: Any) -> None:
@@ -70,7 +72,7 @@ def update_output_sheet(output_sheet, template_cells, header_row=3):
         start_row += 1
 
 
-def process(file_data: bytes) -> bytes:
+def process(file_data: BytesIO) -> BytesIO:
     # read excel file
     workbook = load_workbook(file_data)
 
@@ -84,4 +86,5 @@ def process(file_data: bytes) -> bytes:
 
     result_data = BytesIO()
     workbook.save(result_data)
-    return result_data.getvalue()
+    result_data.seek(0)
+    return result_data
