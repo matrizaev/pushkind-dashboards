@@ -2,7 +2,7 @@ import logging
 import sys
 
 from dynaconf import FlaskDynaconf
-from flask import Flask, render_template
+from flask import Flask, render_template, request
 
 from pushboards import admin, auth, main
 from pushboards.extensions import bootstrap, db, login_manager, migrate, oauth_client
@@ -49,10 +49,15 @@ def register_blueprints(app):
 def register_errorhandlers(app):
     """Register error handlers."""
 
+    def wants_json_response():
+        return request.accept_mimetypes["application/json"] >= request.accept_mimetypes["text/html"]
+
     def render_error(error):
         """Render error template."""
         # If a HTTPException, pull the `code` attribute; default to 500
         error_code = getattr(error, "code", 500)
+        if wants_json_response():
+            return {"error": error.description}, error_code
         return render_template(f"errors/{error_code}.html", error=error), error_code
 
     for errcode in [400, 401, 403, 404, 413, 500, 503]:

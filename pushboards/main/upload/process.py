@@ -83,7 +83,7 @@ def get_import_configuration(conf_sheet: Worksheet, get_cell_color: OpenpyxlColo
         for cell in row:
             cell_color = get_cell_color(cell.fill.fgColor)
             if cell_color:
-                conf[cell_color] = str(cell.value)
+                conf[cell_color] = str(cell.value or "")
     return conf
 
 
@@ -97,7 +97,7 @@ def import_raw_data(
             continue
         values = [conf[column_color]]
         for row_id in data_sheet.row_dimensions.keys():
-            values.append(data_sheet[f"{col_id}{row_id}"].value)
+            values.append(data_sheet[f"{col_id}{row_id}"].value or "")
         data.append(values)
     return data
 
@@ -105,6 +105,9 @@ def import_raw_data(
 def process(file_data: BytesIO, conf_sheet_name: str) -> BytesIO:
     # read excel file
     workbook = load_workbook(file_data)
+
+    if conf_sheet_name not in workbook.sheetnames:
+        raise ValueError("Configuration sheet not found")
 
     # function to reliably read cells' colors
     get_cell_color = OpenpyxlColorToRgbaConverter(Theme(workbook))
@@ -116,8 +119,14 @@ def process(file_data: BytesIO, conf_sheet_name: str) -> BytesIO:
     # read configuration from the configuration sheet
     conf = get_import_configuration(conf_sheet, get_cell_color)
 
+    if not conf:
+        raise ValueError("Configuration sheet is empty")
+
     # read data from the data sheet
     data = import_raw_data(data_sheet, get_cell_color, conf)
+
+    if not data:
+        raise ValueError("Data sheet is empty")
 
     # convert the raw data to a Pandas DataFrame
     result = pd.DataFrame(data).transpose().fillna("")

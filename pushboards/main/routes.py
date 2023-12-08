@@ -30,7 +30,10 @@ def upload():
     file_path: Path = (
         Path(current_app.static_folder) / current_app.config.get("static_upload_path") / file_uuid
     ).with_suffix(current_app.config["file_upload_suffix"])
-    file_post.stream = process(file_post.stream, current_app.config["CONF_SHEET_NAME"])
+    try:
+        file_post.stream = process(file_post.stream, current_app.config["CONF_SHEET_NAME"])
+    except ValueError as e:
+        abort(400, str(e))
     file_post.save(file_path)
     user_file = UserFile(file_name=file_post.filename, file_path=str(file_path), user_id=current_user.id)
     db.session.add(user_file)
