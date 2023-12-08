@@ -138,3 +138,11 @@ def pandas_pickle_to_excel(path: Path | BytesIO) -> BytesIO:
     result.to_excel(result_data, index=False, header=False)
     result_data.seek(0)
     return result_data
+
+
+def pandas_pickle_to_html(file_path: Path | BytesIO) -> str:
+    # read from pickle
+    result = pd.read_pickle(file_path)
+
+    # save to html
+    return result.to_html(index=False, header=False, justify="left", classes=["table", "table-striped"])

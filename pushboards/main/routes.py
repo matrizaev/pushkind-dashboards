@@ -7,7 +7,7 @@ from flask_login import current_user, login_required
 
 from pushboards.extensions import db
 from pushboards.main.models import UserFile
-from pushboards.main.upload.process import pandas_pickle_to_excel, process
+from pushboards.main.upload.process import pandas_pickle_to_excel, pandas_pickle_to_html, process
 
 bp = Blueprint("main", __name__)
 
@@ -64,4 +64,15 @@ def download(file_id):
                 mimetype="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
                 headers={"Content-Disposition": f"attachment;filename={encoded_file_name}"},
             )
+    abort(404)
+
+
+@bp.route("/show/<int:file_id>", methods=["GET"])
+def show(file_id):
+    file = UserFile.query.get_or_404(file_id)
+    if file and file.user_id == current_user.id:
+        file_path = Path(file.file_path)
+        if file_path.exists():
+            file_data = pandas_pickle_to_html(file_path)
+            return render_template("main/show.html", file=file, file_data=file_data)
     abort(404)

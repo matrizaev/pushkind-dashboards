@@ -17,6 +17,11 @@
                         href="{{ url_for('main.index') }}">Главная</a>
                 </li>
 
+                {% if request.endpoint == 'main.show' %}
+                <li class="nav-item">
+                    <span class="nav-link active">Отчет</span>
+                </li>
+                {% endif %}
             </ul>
 
             <span class="navbar-text py-0">
