@@ -7,7 +7,6 @@ class UserFile(db.Model):  # noqa: R0401, R0903
     id = db.Column(db.Integer, primary_key=True, autoincrement=True)
     file_name = db.Column(db.String(128), nullable=False)
     file_path = db.Column(db.String(128), nullable=False)
-    file_url = db.Column(db.String(128), nullable=False)
     user_id = db.Column(db.Integer, db.ForeignKey("users.id"))
 
     user = db.relationship("User", backref=db.backref("files", lazy=True))
