@@ -1,12 +1,13 @@
+import urllib.parse
 from pathlib import Path
 from uuid import uuid4
 
-from flask import Blueprint, abort, current_app, jsonify, render_template, request, url_for
+from flask import Blueprint, Response, abort, current_app, jsonify, render_template, request
 from flask_login import current_user, login_required
 
 from pushboards.extensions import db
 from pushboards.main.models import UserFile
-from pushboards.main.process import process
+from pushboards.main.upload.process import pandas_pickle_to_excel, process
 
 bp = Blueprint("main", __name__)
 
@@ -25,16 +26,16 @@ def upload():
     if not file_post:
         abort(400)
 
+    file_uuid = uuid4().hex
     file_path: Path = (
-        Path(current_app.static_folder) / current_app.config.get("static_upload_path") / uuid4().hex
+        Path(current_app.static_folder) / current_app.config.get("static_upload_path") / file_uuid
     ).with_suffix(current_app.config["file_upload_suffix"])
-    file_post.stream = process(file_post.stream)
+    file_post.stream = process(file_post.stream, current_app.config["CONF_SHEET_NAME"])
     file_post.save(file_path)
-    file_url = url_for("static", filename=file_path.relative_to(current_app.static_folder))
-    user_file = UserFile(file_post.filename, str(file_path), file_url, current_user.id)
+    user_file = UserFile(file_name=file_post.filename, file_path=str(file_path), user_id=current_user.id)
     db.session.add(user_file)
     db.session.commit()
-    return jsonify({"status": "ok", "file_url": file_url, "file_name": user_file.file_name, "id": user_file.id})
+    return jsonify({"status": "ok", "file_name": user_file.file_name, "id": user_file.id})
 
 
 @bp.route("/remove/<int:file_id>", methods=["POST"])
@@ -48,3 +49,19 @@ def remove(file_id):
     else:
         abort(404)
     return jsonify({"status": "ok"})
+
+
+@bp.route("/download/<int:file_id>", methods=["GET"])
+def download(file_id):
+    file = UserFile.query.get_or_404(file_id)
+    if file and file.user_id == current_user.id:
+        file_path = Path(file.file_path)
+        if file_path.exists():
+            output_data = pandas_pickle_to_excel(file_path)
+            encoded_file_name = urllib.parse.quote(file.file_name)
+            return Response(
+                output_data,
+                mimetype="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+                headers={"Content-Disposition": f"attachment;filename={encoded_file_name}"},
+            )
+    abort(404)

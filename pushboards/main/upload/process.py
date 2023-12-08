@@ -1,7 +1,12 @@
 from io import BytesIO
+from pathlib import Path
 from typing import Any, Callable
 
+import pandas as pd
 from openpyxl import load_workbook
+from openpyxl.worksheet.worksheet import Worksheet
+
+from pushboards.main.upload.openpyxl_get_colors import OpenpyxlColorToRgbaConverter, Theme
 
 ProcessCallable = Callable[[bytes], bytes]
 
@@ -72,19 +77,64 @@ def update_output_sheet(output_sheet, template_cells, header_row=3):
         start_row += 1
 
 
-def process(file_data: BytesIO) -> BytesIO:
+def get_import_configuration(conf_sheet: Worksheet, get_cell_color: OpenpyxlColorToRgbaConverter) -> dict[str, str]:
+    conf = {}
+    for row in conf_sheet:
+        for cell in row:
+            cell_color = get_cell_color(cell.fill.fgColor)
+            if cell_color:
+                conf[cell_color] = str(cell.value)
+    return conf
+
+
+def import_raw_data(
+    data_sheet: Worksheet, get_cell_color: OpenpyxlColorToRgbaConverter, conf: dict[str, str]
+) -> list[list[str]]:
+    data = []
+    for col_id, col in data_sheet.column_dimensions.items():
+        column_color = get_cell_color(col.fill.fgColor)
+        if column_color not in conf:
+            continue
+        values = [conf[column_color]]
+        for row_id in data_sheet.row_dimensions.keys():
+            values.append(data_sheet[f"{col_id}{row_id}"].value)
+        data.append(values)
+    return data
+
+
+def process(file_data: BytesIO, conf_sheet_name: str) -> BytesIO:
     # read excel file
     workbook = load_workbook(file_data)
 
+    # function to reliably read cells' colors
+    get_cell_color = OpenpyxlColorToRgbaConverter(Theme(workbook))
+
     # get excel sheets
-    template_sheet = workbook[workbook.sheetnames[2]]
     data_sheet = workbook[workbook.sheetnames[0]]
-    output_sheet = workbook[workbook.sheetnames[1]]
+    conf_sheet = workbook[conf_sheet_name]
 
-    template_cells = get_templated_data(data_sheet, template_sheet)
-    update_output_sheet(output_sheet, template_cells)
+    # read configuration from the configuration sheet
+    conf = get_import_configuration(conf_sheet, get_cell_color)
 
+    # read data from the data sheet
+    data = import_raw_data(data_sheet, get_cell_color, conf)
+
+    # convert the raw data to a Pandas DataFrame
+    result = pd.DataFrame(data).transpose().fillna("")
+
+    # save to a BytesIO
     result_data = BytesIO()
-    workbook.save(result_data)
+    result.to_pickle(result_data)
+    result_data.seek(0)
+    return result_data
+
+
+def pandas_pickle_to_excel(path: Path | BytesIO) -> BytesIO:
+    # read from pickle
+    result = pd.read_pickle(path)
+
+    # save to excel
+    result_data = BytesIO()
+    result.to_excel(result_data, index=False, header=False)
     result_data.seek(0)
     return result_data

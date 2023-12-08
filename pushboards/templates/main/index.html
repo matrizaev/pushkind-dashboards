@@ -22,7 +22,7 @@
             <div class="col-sm m-1">
                 <div class="card text-center">
                     <div class="card-body">
-                        <a href="{{file_data.file_url}}">
+                        <a href="{{url_for('main.download', file_id=file_data.id)}}">
                             <img class="logo" src="{{url_for('static', filename='images/excel.png')}}" alt="thumbnail">
                         </a>
                     </div>
@@ -31,7 +31,7 @@
                             <div class="col">
                                 <a class="card-link d-inline-block text-truncate" style="max-width: 150px;"
                                     data-bs-toggle="tooltip" data-bs-placement="top" title="{{file_data.file_name}}"
-                                    href="{{file_data.file_url}}">{{file_data.file_name}}</a>
+                                    href="{{url_for('main.download', file_id=file_data.id)}}">{{file_data.file_name}}</a>
                             </div>
                         </div>
                         <div class="row">
@@ -122,7 +122,7 @@
         for (let fileUrlElement of file.previewElement.querySelectorAll(
             "[data-dz-file-url]"
         )) {
-            fileUrlElement.href = serverResponse.file_url;
+            fileUrlElement.href = "{{ url_for('main.remove', file_id=-1) }}".replace("-1", serverResponse.file_id);
         }
     });
 

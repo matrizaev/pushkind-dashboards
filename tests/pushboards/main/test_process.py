@@ -1,4 +1,4 @@
-from pushboards.main.process import update_value_list_dict
+from pushboards.main.upload.process import update_value_list_dict
 
 
 def test_update_value_list_dict():

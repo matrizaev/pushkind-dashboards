@@ -12,10 +12,9 @@ class UserFile(db.Model):  # noqa: R0401, R0903
 
     user = db.relationship("User", backref=db.backref("files", lazy=True))
 
-    def __init__(self, file_name: str, file_path: str, file_url: str, user_id: int):
+    def __init__(self, file_name: str, file_path: str, user_id: int):
         self.file_name = file_name
         self.file_path = file_path
-        self.file_url = file_url
         self.user_id = user_id
 
     def to_json(self):
@@ -23,6 +22,5 @@ class UserFile(db.Model):  # noqa: R0401, R0903
             "id": self.id,
             "file_name": self.file_name,
             "file_path": self.file_path,
-            "file_url": self.file_url,
             "user_id": self.user_id,
         }
