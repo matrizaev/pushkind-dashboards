@@ -61,7 +61,7 @@ def remove(file_id: int):
 def download(file_id: int):
     file = UserFile.query.get_or_404(file_id)
     if file and file.user_id == current_user.id:
-        if file.file_path.exists():
+        if Path(file.file_path).exists():
             output_data = file.to_excel()
             encoded_file_name = urllib.parse.quote(file.file_name)
             return Response(
@@ -76,7 +76,7 @@ def download(file_id: int):
 def show(file_id: int):
     file = UserFile.query.get_or_404(file_id)
     if file and file.user_id == current_user.id:
-        if file.file_path.exists():
+        if Path(file.file_path).exists():
             file_data = file.to_html()
             return render_template("main/show.html", file=file, file_data=file_data)
     abort(404)
