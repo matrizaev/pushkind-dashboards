@@ -6,6 +6,6 @@ from flask_sqlalchemy import SQLAlchemy
 
 oauth_client = OAuth()
 login_manager = LoginManager()
-migrate = Migrate()
+migrate = Migrate(render_as_batch=True)
 db = SQLAlchemy()
 bootstrap = Bootstrap5()

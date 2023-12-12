@@ -20,9 +20,10 @@ def index():
     return render_template("main/index.html")
 
 
-@bp.route("/upload", methods=["POST"])
+@bp.route("/upload", defaults={"file_id": None}, methods=["POST"])
+@bp.route("/upload/<int:file_id>", methods=["POST"])
 @login_required
-def upload():
+def upload(file_id: int):
     file_post = request.files.get("file")
     if not file_post:
         abort(400)
@@ -32,13 +33,26 @@ def upload():
 
     import_fn = functools.partial(process, conf_sheet_name=current_app.config["CONF_SHEET_NAME"])
 
-    user_file = UserFile(
-        file_name=file_post.filename,
-        file_path=file_path,
-        user_id=current_user.id,
-        file_data=file_post.stream,
-        import_fn=import_fn,
-    )
+    if file_id:
+        user_file = UserFile.query.get_or_404(file_id)
+        if not user_file or user_file.user_id != current_user.id:
+            abort(404)
+        user_file.remove_data()
+        user_file.file_name = file_post.filename
+        user_file.file_path = file_path
+    else:
+        user_file = UserFile(
+            file_name=file_post.filename,
+            file_path=file_path,
+            user_id=current_user.id,
+        )
+    try:
+        user_file.to_pickle(
+            file_data=file_post.stream,
+            import_fn=import_fn,
+        )
+    except ValueError as e:
+        abort(400, str(e))
 
     db.session.add(user_file)
     db.session.commit()
@@ -62,7 +76,7 @@ def download(file_id: int):
     file = UserFile.query.get_or_404(file_id)
     if file and file.user_id == current_user.id:
         if Path(file.file_path).exists():
-            output_data = file.to_excel()
+            output_data = file.get_excel()
             encoded_file_name = urllib.parse.quote(file.file_name)
             return Response(
                 output_data,
@@ -77,6 +91,6 @@ def show(file_id: int):
     file = UserFile.query.get_or_404(file_id)
     if file and file.user_id == current_user.id:
         if Path(file.file_path).exists():
-            file_data = file.to_html()
+            file_data = file.get_html()
             return render_template("main/show.html", file=file, file_data=file_data)
     abort(404)

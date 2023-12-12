@@ -3,7 +3,7 @@ from flask_login import UserMixin
 from pushboards.extensions import db
 
 
-class User(db.Model, UserMixin):  # noqa: R0903
+class User(db.Model, UserMixin):
     __tablename__ = "users"
 
     id = db.Column(db.Integer, primary_key=True, autoincrement=True)

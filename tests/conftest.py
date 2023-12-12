@@ -1,10 +1,12 @@
 import json
 import os
 import tempfile
+from datetime import datetime
 from io import BytesIO
 
 import pandas as pd
 import pytest
+from pytz import timezone
 
 from pushboards import create_app
 from pushboards.auth.models import User
@@ -33,6 +35,11 @@ def client(app):
     with test_client.session_transaction() as session:
         session["user_id"] = 1
     return test_client
+
+
+@pytest.fixture()
+def mock_datetime():
+    return datetime(2023, 1, 1, 0, 0, 0, tzinfo=timezone("UTC"))
 
 
 @pytest.fixture()
