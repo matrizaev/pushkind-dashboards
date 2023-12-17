@@ -60,45 +60,60 @@
 
 {% block scripts %}
 <script>
+
+
+    function handleSelectChange(selectElement, formId, urlTemplate, idParam, descriptionInputId, nameInputId, funcInputId) {
+        const form = document.getElementById(formId);
+        const currentOption = selectElement.options[selectElement.selectedIndex];
+        const itemId = parseInt(currentOption.value) || "";
+        const descriptionInput = document.getElementById(descriptionInputId);
+        const nameInput = document.getElementById(nameInputId);
+        const funcInput = document.getElementById(funcInputId);
+
+        form.action = urlTemplate.replace(idParam, itemId);
+
+        if (itemId) {
+            descriptionInput.value = currentOption.dataset.description;
+            nameInput.value = currentOption.text;
+            funcInput.value = currentOption.dataset.func;
+        } else {
+            descriptionInput.value = "";
+            nameInput.value = "";
+            funcInput.value = "";
+        }
+    }
+
     const selectReport = document.getElementById("selectReport");
     const selectFunction = document.getElementById("selectFunction");
 
     selectReport.addEventListener("change", function (event) {
-        const form = document.getElementById("reportForm");
-        const currentOption = event.target.options[event.target.selectedIndex];
-        const reportId = parseInt(currentOption.value) || "";
-        const reportDescriptionInput = document.getElementById("report_description");
-        const reportFuncInput = document.getElementById("report_func");
-        const reportNameInput = document.getElementById("report_name");
-        if (reportId) {
-            form.action = "{{url_for('admin.modify_report', report_id=-1)}}".replace("-1", reportId);
-            reportDescriptionInput.value = currentOption.dataset.description;
-            reportFuncInput.value = currentOption.dataset.func;
-            reportNameInput.value = currentOption.text;
-        } else {
-            form.action = "{{url_for('admin.add_report')}}";
-            reportDescriptionInput.value = "";
-            reportNameInput.value = "";
-        }
+        handleSelectChange(
+            selectReport,
+            "reportForm",
+            "{{url_for('admin.modify_report', report_id=-1)}}",
+            "-1",
+            "report_description",
+            "report_name",
+            "report_func"
+        );
     });
+
     selectFunction.addEventListener("change", function (event) {
-        const form = document.getElementById("functionForm");
-        const currentOption = event.target.options[event.target.selectedIndex];
-        const functionId = parseInt(currentOption.value) || "";
-        const funcDescriptionInput = document.getElementById("func_description");
-        const funcClassInput = document.getElementById("func_class");
-        const funcNameInput = document.getElementById("func_name");
-        if (functionId) {
-            form.action = "{{url_for('admin.modify_function', func_id=-1)}}".replace("-1", functionId);
-            funcDescriptionInput.value = currentOption.dataset.description;
-            funcClassInput.value = currentOption.dataset.class;
-            funcNameInput.value = currentOption.text;
-        } else {
-            form.action = "{{url_for('admin.add_function')}}";
-            funcDescriptionInput.value = "";
-            funcClassInput.value = "";
-            funcNameInput.value = "";
-        }
+        handleSelectChange(
+            selectFunction,
+            "functionForm",
+            "{{url_for('admin.modify_function', func_id=-1)}}",
+            "-1",
+            "func_description",
+            "func_name",
+            "func_class"
+        );
     });
+
+
+
+
+
+
 </script>
 {% endblock %}

@@ -52,3 +52,6 @@ exclude = ["migrations/*"]
 [tool.pylint.main]
 py-version = [ 3, 12 ]
 disable = "C0114, C0115, C0116, R0903"
+
+[tool.coverage.report]
+omit = ["tests/*", "migrations/*"]

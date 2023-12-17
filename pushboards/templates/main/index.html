@@ -5,9 +5,21 @@
 
 {% block content %}
 <div class="container">
+    <div class="row m-2">
+        <div class="col">
+            <select class="form-select" aria-label="Select report" id="selectReport">
+                {% for rep in reports %}
+                <option value="{{ rep.id }}" {% if rep.id==report.id %}selected{% endif %}>
+                    {{rep.report_name }}
+                </option>
+                {% endfor %}
+            </select>
+        </div>
+    </div>
     <div class="row">
         <div class="col">
-            <form action="{{url_for('main.upload')}}" class="dropzone dz-clickable border rounded bg-light p-3">
+            <form action="{{url_for('main.upload', report_id=report.id)}}"
+                class="dropzone dz-clickable border rounded bg-light p-3">
                 <div class="dz-default dz-message text-center">
                     <i class="bi bi-cloud-arrow-up" style="font-size: 2rem;"></i>
                     <div>Перетащить файл или кликнуть чтобы загрузить.</div>
@@ -15,8 +27,17 @@
             </form>
         </div>
     </div>
+    <div id="current-loaded-preview" class="my-1"></div>
+    {% if report.files %}
+    <h6>
+        Последний загруженный файл
+    </h6>
+    <div id="last-loaded-preview" class="my-1">
+        {{ report.files[0].get_html() | safe }}
+    </div>
+    {% endif %}
     <div id="existing-files-list">
-        {% for rows in current_user.files|batch(5) %}
+        {% for rows in report.files|batch(5) %}
         <div class="row my-4">
             {% for file_data in rows %}
             <div class="col-sm m-1">
@@ -94,11 +115,19 @@
 
 {% block scripts %}
 <script>
+
+    const lastLoadedPreview = document.getElementById("current-loaded-preview");
+    const selectReport = document.getElementById("selectReport");
+
+    selectReport.addEventListener("change", function (event) {
+        window.location.href = "{{ url_for('main.index', report_id=-1) }}".replace("-1", selectReport.value);
+    });
+
     Dropzone.autoDiscover = false;
 
     // Dropzone configuration
     var myDropzone = new Dropzone(".dropzone", {
-        url: "{{url_for('main.upload')}}",
+        url: "{{url_for('main.upload', report_id=report.id)}}",
         paramName: "file",
         maxFilesize: 10, // MB
         acceptedFiles: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
@@ -112,6 +141,7 @@
 
     myDropzone.on("success", function (file, serverResponse) {
         file.file_id = serverResponse.id;
+        lastLoadedPreview.innerHTML = serverResponse.html;
         for (let thumbnailElement of file.previewElement.querySelectorAll(
             "[data-dz-thumbnail]"
         )) {

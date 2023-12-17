@@ -7,6 +7,8 @@ from openpyxl.worksheet.worksheet import Worksheet
 
 from pushboards.main.upload.openpyxl_get_colors import OpenpyxlColorToRgbaConverter, Theme
 
+CONF_SHEET_NAME = "Настройка импорта"
+
 
 def get_import_configuration(conf_sheet: Worksheet, get_cell_color: OpenpyxlColorToRgbaConverter) -> dict[str, str]:
     conf = {}
@@ -33,11 +35,11 @@ def import_raw_data(
     return data
 
 
-def process1(file_data: Path | BytesIO, conf_sheet_name: str) -> pd.DataFrame:
+def process1(file_data: Path | BytesIO) -> pd.DataFrame:
     # read excel file
     workbook = load_workbook(file_data)
 
-    if conf_sheet_name not in workbook.sheetnames:
+    if CONF_SHEET_NAME not in workbook.sheetnames:
         raise ValueError("Configuration sheet not found")
 
     # function to reliably read cells' colors
@@ -45,7 +47,7 @@ def process1(file_data: Path | BytesIO, conf_sheet_name: str) -> pd.DataFrame:
 
     # get excel sheets
     data_sheet = workbook[workbook.sheetnames[0]]
-    conf_sheet = workbook[conf_sheet_name]
+    conf_sheet = workbook[CONF_SHEET_NAME]
 
     # read configuration from the configuration sheet
     conf = get_import_configuration(conf_sheet, get_cell_color)
@@ -60,6 +62,10 @@ def process1(file_data: Path | BytesIO, conf_sheet_name: str) -> pd.DataFrame:
         raise ValueError("Data sheet is empty")
 
     # convert the raw data to a Pandas DataFrame
-    result = pd.DataFrame(data).transpose().fillna("")
+    result = pd.DataFrame(data).transpose()
+    new_index = list(result.index)
+    new_index[:2] = (1, 0)
+    result = result.reindex(new_index)
+    result = result.replace(r"^\s*$", None, regex=True).ffill(axis=1).ffill(axis=0).fillna("")
 
     return result

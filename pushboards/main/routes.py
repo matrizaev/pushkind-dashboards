@@ -1,4 +1,3 @@
-import functools
 import urllib.parse
 from pathlib import Path
 from uuid import uuid4
@@ -7,8 +6,7 @@ from flask import Blueprint, Response, abort, current_app, jsonify, render_templ
 from flask_login import current_user, login_required
 
 from pushboards.extensions import db
-from pushboards.main.models import UserFile
-from pushboards.main.upload.excel_processor import process1
+from pushboards.main.models import Report, UserFile
 
 bp = Blueprint("main", __name__)
 
@@ -17,7 +15,13 @@ bp = Blueprint("main", __name__)
 @bp.route("/index/")
 @login_required
 def index():
-    return render_template("main/index.html")
+    report_id = request.args.get("report_id", type=int)
+    if report_id:
+        report = Report.query.get_or_404(report_id)
+    else:
+        report = Report.query.first()
+    reports = Report.query.all()
+    return render_template("main/index.html", reports=reports, report=report)
 
 
 @bp.route("/upload", defaults={"file_id": None}, methods=["POST"])
@@ -31,8 +35,6 @@ def upload(file_id: int):
     file_uuid_name = Path(uuid4().hex).with_suffix(current_app.config["file_upload_suffix"])
     file_path: Path = Path(current_app.static_folder) / current_app.config.get("static_upload_path") / file_uuid_name
 
-    import_fn = functools.partial(process1, conf_sheet_name=current_app.config["CONF_SHEET_NAME"])
-
     if file_id:
         user_file = UserFile.query.get_or_404(file_id)
         if not user_file or user_file.user_id != current_user.id:
@@ -41,22 +43,17 @@ def upload(file_id: int):
         user_file.file_name = file_post.filename
         user_file.file_path = file_path
     else:
-        user_file = UserFile(
-            file_name=file_post.filename,
-            file_path=file_path,
-            user_id=current_user.id,
-        )
-    try:
-        user_file.to_pickle(
-            file_data=file_post.stream,
-            import_fn=import_fn,
-        )
-    except ValueError as e:
-        abort(400, str(e))
+        report_id = request.args.get("report_id", type=int)
+        report = Report.query.get_or_404(report_id)
+        user_file = UserFile(file_name=file_post.filename, file_path=file_path, user=current_user, report=report)
 
     db.session.add(user_file)
+    try:
+        user_file.to_pickle(file_data=file_post.stream)
+    except ValueError as e:
+        abort(400, str(e))
     db.session.commit()
-    return jsonify({"status": "ok", "file_name": user_file.file_name, "id": user_file.id})
+    return jsonify({"status": "ok", "file_name": user_file.file_name, "id": user_file.id, "html": user_file.get_html()})
 
 
 @bp.route("/remove/<int:file_id>", methods=["POST"])

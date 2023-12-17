@@ -25,12 +25,14 @@ class UserFile(db.Model):
     )
     user = db.relationship("User", backref=db.backref("files", lazy=True, order_by="files.columns.created_at.desc()"))
 
-    def __init__(self, file_name: str, file_path: Path, user_id: int):
+    def __init__(self, file_name: str, file_path: Path, user, report):
         self.file_name = file_name
         self.file_path = str(file_path)
-        self.user_id = user_id
+        self.user = user
+        self.report = report
 
-    def to_pickle(self, file_data: BytesIO, import_fn: ImportFnCallable):
+    def to_pickle(self, file_data: BytesIO):
+        import_fn = self.report.func.get_func()
         file_df = import_fn(file_data)
         file_df.to_pickle(Path(self.file_path))
 
@@ -41,6 +43,7 @@ class UserFile(db.Model):
             "file_path": self.file_path,
             "created_at": self.created_at.isoformat(),
             "user_id": self.user_id,
+            "report_id": self.report_id,
         }
 
     def get_excel(self) -> BytesIO:
@@ -81,6 +84,9 @@ class ImportFunction(db.Model):
         self.func_class = func_class
         func = getattr(upload, func_class)
         return func
+
+    def get_func(self) -> ImportFnCallable:
+        return getattr(upload, self.func_class)
 
     def to_json(self):
         return {
