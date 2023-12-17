@@ -33,7 +33,7 @@ def import_raw_data(
     return data
 
 
-def process(file_data: Path | BytesIO, conf_sheet_name: str) -> pd.DataFrame:
+def process1(file_data: Path | BytesIO, conf_sheet_name: str) -> pd.DataFrame:
     # read excel file
     workbook = load_workbook(file_data)
 

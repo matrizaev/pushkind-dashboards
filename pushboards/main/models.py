@@ -5,8 +5,9 @@ from typing import Callable
 import pandas as pd
 
 from pushboards.extensions import db
+from pushboards.main import upload
 
-ImportFn = Callable[[BytesIO], pd.DataFrame]
+ImportFnCallable = Callable[[BytesIO], pd.DataFrame]
 
 
 class UserFile(db.Model):
@@ -29,7 +30,7 @@ class UserFile(db.Model):
         self.file_path = str(file_path)
         self.user_id = user_id
 
-    def to_pickle(self, file_data: BytesIO, import_fn: ImportFn):
+    def to_pickle(self, file_data: BytesIO, import_fn: ImportFnCallable):
         file_df = import_fn(file_data)
         file_df.to_pickle(Path(self.file_path))
 
@@ -63,19 +64,48 @@ class UserFile(db.Model):
         Path(self.file_path).unlink(missing_ok=True)
 
 
+class ImportFunction(db.Model):
+    __tablename__ = "import_functions"
+
+    id = db.Column(db.Integer, primary_key=True, autoincrement=True)
+    func_name = db.Column(db.String(128), nullable=False)
+    description = db.Column(db.Text, nullable=True)
+    func_class = db.Column(db.String(128), nullable=False, unique=True)
+
+    def __init__(self, func_name: str, description: str, func_class: str):
+        self.func_name = func_name
+        self.description = description
+        self.attach_func_class(func_class=func_class)
+
+    def attach_func_class(self, func_class: str):
+        self.func_class = func_class
+        func = getattr(upload, func_class)
+        return func
+
+    def to_json(self):
+        return {
+            "id": self.id,
+            "func_name": self.func_name,
+            "description": self.description,
+            "func_class": self.func_class,
+        }
+
+
 class Report(db.Model):
     __tablename__ = "reports"
 
     id = db.Column(db.Integer, primary_key=True, autoincrement=True)
     report_name = db.Column(db.String(128), nullable=False)
     created_at = db.Column(db.DateTime, nullable=False, default=db.func.now())
-    import_fn = db.Column(
-        db.String(128), nullable=False, server_default="pushboards.main.upload.excel_processor.process"
-    )
+    description = db.Column(db.Text, nullable=True)
+    func_id = db.Column(db.Integer, db.ForeignKey("import_functions.id"), nullable=False)
 
-    def __init__(self, report_name: str, import_fn: str):
+    func = db.relationship("ImportFunction", backref=db.backref("reports", lazy=True))
+
+    def __init__(self, report_name: str, description: str, func: ImportFunction):
         self.report_name = report_name
-        self.import_fn = import_fn
+        self.description = description
+        self.func = func
 
     def to_json(self) -> dict[str, str]:
         return {
@@ -83,7 +113,5 @@ class Report(db.Model):
             "report_name": self.report_name,
             "created_at": self.created_at.isoformat(),
             "files": [file.to_json() for file in self.files],
+            "func": self.func.to_json(),
         }
-
-    def attach_import_fn(self):
-        pass

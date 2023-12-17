@@ -1,0 +1,13 @@
+<div class="row">
+    <div class="col">
+        <select class="form-select" aria-label="Select import functions" id="selectFunction">
+            <option selected>Добавить новую функцию</option>
+            {% for func in funcs %}
+            <option value="{{ func.id }}" data-description="{{ func.description }}" data-class="{{ func.func_class }}">
+                {{
+                func.func_name }}</option>
+            {% endfor %}
+        </select>
+    </div>
+</div>
+{{ render_form(forms["import_function"], action=url_for("admin.add_function"), id="functionForm") }}

@@ -8,7 +8,7 @@ from flask_login import current_user, login_required
 
 from pushboards.extensions import db
 from pushboards.main.models import UserFile
-from pushboards.main.upload.excel_processor import process
+from pushboards.main.upload.excel_processor import process1
 
 bp = Blueprint("main", __name__)
 
@@ -31,7 +31,7 @@ def upload(file_id: int):
     file_uuid_name = Path(uuid4().hex).with_suffix(current_app.config["file_upload_suffix"])
     file_path: Path = Path(current_app.static_folder) / current_app.config.get("static_upload_path") / file_uuid_name
 
-    import_fn = functools.partial(process, conf_sheet_name=current_app.config["CONF_SHEET_NAME"])
+    import_fn = functools.partial(process1, conf_sheet_name=current_app.config["CONF_SHEET_NAME"])
 
     if file_id:
         user_file = UserFile.query.get_or_404(file_id)

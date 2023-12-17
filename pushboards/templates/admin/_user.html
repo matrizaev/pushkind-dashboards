@@ -1,0 +1,18 @@
+<div class="row border-bottom p-1">
+    <div class="col">
+        <div class="row">
+            <div class="col-sm overflow-hidden">
+                <span class="d-sm-none fw-bold">ФИО:</span>
+                {{ user.full_name or '' }}
+            </div>
+            <div class="col-sm overflow-hidden">
+                <span class="d-sm-none fw-bold">Email:</span>
+                {{ user.email }}
+            </div>
+        </div>
+    </div>
+    <div class="col overflow-hidden text-center">
+        <img class="person rounded-circle" src="{{ user.picture or url_for('static', filename='images/person.png') }}"
+            alt="Person">
+    </div>
+</div>

@@ -22,6 +22,10 @@
                     <span class="nav-link active">Отчет</span>
                 </li>
                 {% endif %}
+                <li class="nav-item">
+                    <a class="nav-link {% if request.endpoint == 'admin.index' %} active {% endif %}"
+                        href="{{ url_for('admin.index') }}">Админ</a>
+                </li>
             </ul>
 
             <span class="navbar-text py-0">

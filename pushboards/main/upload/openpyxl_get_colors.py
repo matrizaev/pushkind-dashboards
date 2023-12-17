@@ -62,8 +62,7 @@ class Theme:
         color_attributes = element[0].attrib
         if "window" in color_attributes["val"]:
             return color_attributes["lastClr"]
-        else:
-            return color_attributes["val"]
+        return color_attributes["val"]
 
 
 class OpenpyxlColorToRgbaConverter:
@@ -81,15 +80,14 @@ class OpenpyxlColorToRgbaConverter:
         rgba = self._argb_to_rgba(argb)
         if rgba is None or self._is_transparent(rgba):
             return None
-        else:
-            return rgba
+        return rgba
 
     def _color_to_argb(self, color: oxlColor) -> Optional[str]:
         argb = None
         if color.type == "theme":
             argb = self._theme_color_and_tint_to_argb(color.theme, color.tint)
         if color.type == "auto":
-            pass  # TODO: investigate whether we can do something here
+            pass
         elif color.type == "indexed":
             index = int(color.value)
             if index <= self.LAST_INDEXED_COLOR_WITH_ARGB_VALUE:
@@ -110,8 +108,7 @@ class OpenpyxlColorToRgbaConverter:
         if rgba is not None:
             assert len(rgba) == 8, "Expected 4-byte hex-encoded string of length 8"
             return rgba[2:8] + rgba[0:2]
-        else:
-            return None
+        return None
 
     def _theme_color_and_tint_to_argb(self, color_index: int, tint: float):
         rgb = self._theme.colors[color_index]
@@ -133,7 +130,7 @@ class OpenpyxlColorToRgbaConverter:
     def _hls_to_rgb(cls, hue: int, lightness: int, saturation: int):
         rgb_float = colorsys.hls_to_rgb(hue / cls.HLSMAX, lightness / cls.HLSMAX, saturation / cls.HLSMAX)
         rgb_int = tuple(int(round(v * cls.RGBMAX)) for v in rgb_float)
-        rgb_hex = ("%02x%02x%02x" % rgb_int).upper()
+        rgb_hex = f"{rgb_int[0]:02x}{rgb_int[1]:02x}{rgb_int[2]:02x}"
         return rgb_hex
 
     @classmethod

@@ -27,6 +27,7 @@
 
 <body>
 
+    {% from 'bootstrap5/form.html' import render_form %}
     <div id="flask-flash-messages">
         {% with messages = get_flashed_messages(with_categories=true) %}
         {% for category, message in messages %}

@@ -1,0 +1,12 @@
+<div class="row">
+    <div class="col">
+        <select class="form-select" aria-label="Select reports" id="selectReport">
+            <option selected>Добавить новый отчет</option>
+            {% for report in reports %}
+            <option value="{{ report.id }}" data-description="{{ report.description }}"
+                data-func="{{ report.func_id }}">{{ report.report_name }}</option>
+            {% endfor %}
+        </select>
+    </div>
+</div>
+{{ render_form(forms["report"], action=url_for("admin.add_report"), id="reportForm") }}
